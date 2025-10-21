@@ -1,0 +1,149 @@
+---
+title: 'Motor Trend: Trasmission & MPG'
+author: "Riccardo Del Signore"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: '3'
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+  word_document:
+    toc: true
+    toc_depth: '3'
+---
+
+
+# MOTOR TREND analysis
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(broom)
+```
+
+
+## Data & Methods
+
+- Dataset: mtcars
+- Outcome: mpg
+- Potential confounders: wt, hp , cyl, disp, gear, carb
+
+```{r, include=FALSE}
+#import dataset
+mt <- mtcars
+mt$am <- factor(mt$am, labels = c("Automatic", "Manual"))
+```
+
+## Exploratorty Data Analysis (EDA)
+ 
+- Descriptive statistics
+```{r}
+# summary stats of group per am
+
+mt %>%
+  group_by(am) %>%
+  summarise(
+    n = n(),
+    mean_mpg = mean(mpg),
+    sd_mpg = sd(mpg),
+    mean_wt = mean(wt),
+    sd_wt = sd(wt),
+    mean_hp = mean(hp),
+    sd_hp = sd(hp),
+    mean_cyl = mean(cyl),
+    sd_cyl = sd(cyl)
+  )
+
+```
+- Boxplot MPG vs trasmissionn type
+
+```{r}
+
+ggplot(mt, aes(x = am, y = mpg, fill = am)) +
+  geom_boxplot() +
+  labs(title = "MPG by Transmission Type",
+       x = "Transmission Type",
+       y = "Miles Per Gallon (MPG)") +
+  theme_minimal()
+
+```
+Figure 1 shows a clear separation between groups: manual cars tend to have higher MPG values and more variability compared with automatic cars.
+
+- Scatter Plot MPG vs wt
+
+```{r}
+ggplot(mt, aes(x = wt, y = mpg, color = am, shape = am)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(title = "MPG vs Weight",
+       x = "Weight",
+       y = "Miles Per Gallon (MPG)") +
+  theme_minimal()
+```
+Figure 2 suggests that the weight is strongly associated with fuel efficiency: heavier cars have a lower MPG. Manual cars are generally lighter, which may partly explain their higher fuel efficiency.
+This could suggest the need for adjusted models controlling weight as a confounder
+
+## Models
+
+- Model 1 
+
+```{r}
+lm_fit <- lm(mpg ~ am, data = mt)
+summary(lm_fit, correlation = TRUE)
+
+# coef and CI table
+
+tidy(lm_fit, conf.int = TRUE)
+```
+
+
+amManual coefficient reveal that there is a mpg mean difference between Manual and Automatic with a p.value < 0.05
+
+- Model 2 adjusted
+
+```{r}
+lm_fit2 <- lm(mpg ~ am + wt, data = mt)
+tidy(lm_fit2, conf.int = TRUE)
+```
+We can se the Simpson Paradox in action: the amManual coefficient changed from 7.24 to -1.12 when adjusting for wt, meaning that wt is a confounder.
+
+```{r}
+lm_fit3 <- lm(mpg ~ am + wt + hp, data = mt)
+tidy(lm_fit3, conf.int = TRUE)
+```
+
+Comparing the model to evaluate the confounding effect of wt and hp on the am coefficient
+
+```{r}
+anova(lm_fit, lm_fit2, lm_fit3)
+```
+The p.value of the ANOVA test between model 1 and model 2 is <0.05, meaning that wt is a significant confounder. The p.value of the ANOVA test between model 2 and model 3 is < 0.05, meaning that hp is a significant confounder too but with a smaller effect on the am coefficient.
+
+
+## Diagnostic of residual 
+
+```{r}
+par(mfrow = c(2, 2))
+plot(lm_fit2, which = 1)
+plot(lm_fit2, which = 2)
+plot(lm_fit2, which = 3)
+plot(lm_fit2, which = 4)
+```
+We examinated the residuals for the model including weight and trasmission.
+
+- 1 The residual vs fitted values plot showed no systematic patterns and the point are apparenntly randomly spearded around the 0, suggesting that linearity and homoscedasticity assumptions are met.
+- 2 The normal QQ-plot indicate approximate normality of residuals, which only deviate on extremities. 
+- 3 The Scale-location plot confirmed roughly constant variance across fitted values.
+- 4 Cook's distance did not reveal influential outlier 
+
+Overall, diagnostic check support the adequacy of the model.
+
+
+# Conclusions
+
+Our analysis indicates that manual transmission cars are generally more fuel efficient than automatic cars. In unadjusted comparisons, manuals achieved on average ~7 MPG more than automatics. However, after adjusting for weight—a strong confounder—the estimated benefit of manual transmissions was reduced to about +2.9 MPG.
+
+This suggests that while manual transmission itself is associated with improved fuel efficiency, part of the apparent advantage arises from the fact that manual cars in this dataset are lighter. Residual diagnostics supported the validity of the chosen model, and the results are consistent with the hypothesis that manual transmission provides a modest but real fuel economy benefit.

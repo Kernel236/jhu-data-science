@@ -1,0 +1,87 @@
+---
+title: "London Hospitals"
+author: "Kernel236"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r, include=FALSE}
+library(leaflet.extras)
+library(leaflet)
+library(dplyr)
+library(readr)
+```
+
+```{r, include=FALSE}
+df <- read.csv(here::here("data", "london_university_hospitals_icons.csv"))
+
+df_data <- df |>
+  select(lon,lat,hospital) |>
+  dplyr::rename(lng = lon, group = hospital) 
+  
+icon_list <- icons(iconUrl = "https://cdn.iconscout.com/icon/free/png-256/free-nhs-logo-icon-svg-download-png-2284935.png", iconWidth = 20, iconHeight = 20)
+```
+
+```{r, include= FALSE}
+# Define HTML with advanced CSS styling
+title <- "
+<style>
+  .custom-title {
+    color: #34495e;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    background-color: rgba(204, 224, 255, 0.9);
+    padding: 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.custom-title:hover {
+    background-color: rgba(204, 224, 255, 0.7);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+</style>
+<h1>
+  London Collage Hospitals
+</h1>"
+
+legend <- "
+<style>
+  .custom-legend {
+    background-color: rgba(84, 74, 55, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    transition: background-color 0.3s, transform 0.3s;
+    width: 300px;
+  }
+  .custom-legend:hover {
+    background-color: rgba(84, 74, 55, 0.9);
+    transform: scale(1.05);
+  }
+</style>
+<div>
+ <p>
+     <a href='https://www.england.nhs.uk/london/' target='_blank'>NHS</a> London is the capital of the United Kingdom and a major center for healthcare. It hosts many of the country’s most renowned NHS hospitals and teaching institutions, which play a key role in medical education, research, and patient care at both national and international levels.
+  </p>
+</div>"
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+
+my_map <- leaflet() |>
+  addTiles() |>
+  setView(lng = -0.131992, lat = 51.501638, zoom = 11) |>
+  addProviderTiles("NASAGIBS.ViirsEarthAtNight2012") |>
+  addControl(html = title, position = "topright", className = "custom-title") |>
+  addControl(html = legend, position = "bottomleft", className = "custom-legend") |>
+  addMarkers(lng =  df_data$lng, lat = df_data$lat, icon = icon_list, popup = c("St Thomas' Hospital", "Guy's Hospital","King's College Hospital",
+                                            "University College Hospital (UCLH)", "St Mary's Hospital
+                                            (Paddington)", "Hammersmith Hospital", "Royal Free Hospital
+                                            (Hampstead)", "The Royal London Hospital (Whitechapel)",
+                                            "St Bartholomew's Hospital", "St George's Hospital (Tooting)")) |>
+  addMiniMap(width = 150, height = 150) |>
+  leaflet.extras::addDrawToolbar()
+my_map
+```
+

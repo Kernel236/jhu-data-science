@@ -1,0 +1,54 @@
+---
+title: "Plotly presentation"
+author: "Kernel236"
+date: "`r Sys.Date()`"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(plotly)
+library(dplyr)
+library(tidyr)
+```
+
+## Dependencies
+
+- plotly 
+- dpylr
+
+## Database used
+
+```{r cars, echo = TRUE}
+summary(mtcars)
+```
+
+## Basic scatterplot
+
+```{r pressure, echo=FALSE, message=FALSE, warning=FALSE}
+plot_ly(mtcars, x = mtcars$wt, y = mtcars$mpg, mode = "markers", color = as.factor(mtcars$cyl), size = mtcars$hp)
+```
+
+## 3d scatterplot
+```{r, echo=FALSE}
+set.seed(2026-09-29)
+temp <- rnorm(100, mean = 30, sd = 5)
+pressue <- rnorm(100)
+time <- 1:100
+
+plot_ly(x = temp, y = pressue, z = time, type = "scatter3d", mode = "markers", color = temp)
+```
+
+## Time series
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+data("EuStockMarkets")
+stocks <- as.data.frame(EuStockMarkets) |>
+  gather(index, price) |>
+  mutate(time = rep(time(EuStockMarkets), 4))
+
+plot_ly(stocks, x = stocks$time, y = stocks$price, color = stocks$index)
+```
+
+## Thanks for your time
+

@@ -1,0 +1,140 @@
+---
+title: "Classifying Iight-Lifting Execution Quality with Accelerometer Data"
+author: "Kernel236"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    df_print: paged
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    code_folding: show
+---
+
+```{r include=FALSE}
+library(caret)
+library(ggplot2)
+library(dplyr)
+library(doParallel)
+library(parallel)
+library(gridExtra)
+```
+
+
+## Executive summary
+
+I built a multi-class classifier to predict the execution quality of barbell lifts (classe A–E) from Iarable sensors. After cleaning high-NA and near-zero-variance predictors and using stratified k-fold cross-validation, a Random Forest achieved 99.6% CV accuracy. Feature importance suggests belt/forearm accelerations and angular velocities are most predictive.
+
+## Data cleaning
+
+I removed non-predictive metadata (IDs/username/timestamps..), dropped predictors with >95% missingness and near-zero variance. This reduces noise and leakage risk without sacrificing signal.
+
+```{r}
+# Read dataset
+train_coort <-read.csv(here::here("./data/pml-training.csv"))
+test_coort <-read.csv(here::here("./data/pml-testing.csv"))
+
+#rRemouve meta variable not uselful fo rthe models
+train_coort <- train_coort |>
+  select(-c(X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window))
+
+test_coort <- test_coort |>
+  select(-c(X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window, problem_id))
+
+#NearzeroVar
+nzv <- nearZeroVar(train_coort[, -153]) # saveMetrics = FALSE return just indiex for column with low variance
+nzv_test <- nearZeroVar(test_coort)
+
+train_coort <- train_coort[,-c(nzv)]
+test_coort <- test_coort[,-c(nzv_test)]
+# Remove columns with ≥95% missing values
+na_threshold <- 0.95
+train_coort <- train_coort[, colMeans(is.na(train_coort)) < na_threshold]
+test_coort <- test_coort[, colMeans(is.na(test_coort)) < na_threshold]
+
+X_train <- train_coort[,-ncol(train_coort)]
+Y_train <- train_coort[,ncol(train_coort)]
+
+```
+
+## Cross Validation and Model Fitting
+
+All model tuning used k-fold stratified CV within the train set; the holdout was used once for a final unbiased performance estimate.
+
+```{r}
+set.seed(123)
+
+ctrl <- trainControl(
+  method = "cv",
+  number = 5,
+  savePredictions = "final",
+  classProbs = TRUE
+)
+```
+
+
+### Random Forest (RF) and Gradient Boosting (GBM)
+
+I fit a Random Forest as a strong non-parametric baseline. RF handles nonlinearities/interaction and is robust to noisy predictors
+```{r fit_models, cache=TRUE, warning=FALSE, message=FALSE}
+set.seed(123)
+
+n_cores <- detectCores() # DETECT NUMBER OF CORES
+cl <- makeCluster(n_cores -8)
+registerDoParallel(cl) # ACTIVE PARALLEL COMPUT ON N - 8 CORE
+
+fit_rf <- train(x = X_train, y = Y_train, method = "rf", trControl = ctrl, tuneLength = 5, metric = "Accuracy")
+saveRDS(fit_rf, "../models/fit_rf.rds")
+
+fit_gbm <- train(x = X_train, y = Y_train, method = "gbm", trControl = ctrl, ) #GBM MODEL
+saveRDS(fit_rf, "../models/fit_gbm.rds")
+
+stopCluster(cl) #STOP MultiCORE
+registerDoSEQ() # RETURN TO 1 by one core
+```
+
+
+### Model rationale
+
+I compared a robust tree-ensemble baseline (Random Forest) with a gradient boosting model (GBM). Ensembles typically perform Ill on noisy, tabular sensor data and are insensitive to feature scaling.
+
+```{r}
+res <- resamples(list(rf = fit_rf, gbm = fit_gbm))
+dotplot(res)
+```
+```{r}
+fit_rf
+```
+
+```{r}
+fit_gbm
+```
+
+In 5 K-fold Cross validation the RF model show a better Accuracy and Kappa with a very tiny 95% CI
+
+### Features Importance
+```{r}
+varImp_rf <- varImp(fit_rf)
+
+plot(varImp_rf, top = 20, main = "Top 20 Important Features - Random Forest")
+```
+
+
+## Model Comparison and Expected Error
+
+We trained two models (Random Forest and Gradient Boosting Machine) using 5-fold cross-validation.
+
+- Random Forest achieved an accuracy of 99,6%, corresponding to an expected out-of-sample error of ~0,4%.  
+- GBM achieved an accuracy of 96%, corresponding to an expected out-of-sample error of ~4%.  
+
+Based on these results, Random Forest was selected as the final model, since it provides higher accuracy and lower expected error.
+
+## Test cases (20)
+
+I applied the exact same preprocessing to the 20 unlabeled cases and predict using the RF model.
+
+```{r}
+pred_rf <- predict(fit_rf, test_coort)
+write.csv(pred_rf, file = "../report/pred_rd.csv", row.names = FALSE)
+```
+

@@ -1,0 +1,68 @@
+---
+title: "Exponential CLT & ToothGrowth Data Analysis - Simulation and Basic Inference"
+author: "Riccardo Del Signore"
+date: "`r format(Sys.time())`"
+output: 
+  word_document: 
+    toc: true
+    toc_depth: 2
+---
+
+# Part 2: ToothGrowth Data Analysis
+The ToothGrowth dataset is available in R by default. It contains the results of an experiment to study the effect of Vitamin C on tooth growth in guinea pigs. The dataset has 60 observations on 3 variables:
+- len: Tooth length
+- supp: Supplement type (VC or OJ)
+- dose: Dose in mg/day (0.5, 1, 2)
+
+OJ is orange juice and VC is ascorbic acid (vitamin C).
+We are going to explore the data and perform some basic inference.
+
+```{r}
+#load dataset
+data("ToothGrowth")
+str(ToothGrowth)
+summary(ToothGrowth)
+```
+## Exploratory Data Analysis
+Boxplot of tooth length by supplement type and dose
+```{r}
+boxplot(len ~ supp * dose, data = ToothGrowth, 
+        main = "Tooth Length by Supplement Type and Dose", 
+        xlab = "Supplement Type and Dose", 
+        ylab = "Tooth Length", 
+        col = c("lightblue", "lightgreen"))
+```
+
+From this plot seems that OJ supplement leads to longer tooth length compared to VC, especially at lower doses. this difference seems to decrease as the dose increases.
+
+## Inference
+
+We can perform a t-test to compare the mean tooth lengths between the two supplement types (OJ and VC).
+
+```{r}
+#t-test between OJ and VC
+t_test_result_0.5 <- t.test(len ~ supp, data = subset(ToothGrowth, dose == 0.5))
+t_test_result_0.5
+
+t_test_result_1 <- t.test(len ~ supp, data = subset(ToothGrowth, dose == 1))
+t_test_result_1
+
+t_test_result_2 <- t.test(len ~ supp, data = subset(ToothGrowth, dose == 2))
+t_test_result_2
+
+```
+The t-test results indicate that there is a significant difference in tooth length between the two supplement types fpr doses 0.5 mg/day and 1 mg/day but any difference has been identified for dose at 2 mg/day (p-value > 0.05).
+This confirm what viewd in the previouus graph wher OJ supplement seems to lead to longer tooth length compared to VC, especially at lower doses.
+
+## Comparison betweenn doses
+
+```{r}
+pairwise_t_test <- pairwise.t.test(ToothGrowth$len, ToothGrowth$dose, p.adjust.method = "bonferroni")
+pairwise_t_test
+```
+From this results, we can see that there are significant differences in tooth length between the different dose levels. 
+
+## Conclusions
+
+In this dataset the tooth grow is signnificantly affected by both dose administered and type of supplement used. OJ seems to be more effective than VC, especially at lower doses. Further analysis could explore interaction effects between dose and supplement type.
+This conclusion assumes that the assumptions of the t-test and ANOVA are met, including means normality distribution, in line with the CLT demonstrated in the first part of this report.

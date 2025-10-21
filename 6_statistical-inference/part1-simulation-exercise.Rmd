@@ -1,0 +1,87 @@
+---
+title: "Exponential CLT & ToothGrowth Data Analysis - Simulation and Basic Inference"
+author: "Riccardo Del Signore"
+date: "`r format(Sys.time())`"
+output: 
+  word_document: 
+    toc: true
+    toc_depth: 2
+---
+
+# Overview
+
+In this report, we answer the following questions:
+1. How does the Central Limit Theorem (CLT) apply to the Exponential distribution?
+2. Inference on the ToothGrowth dataset.
+
+## Part 1: Exponential CLT
+
+Exp(lamda) = 1/lamda
+Var(X) = 1/lamda^2
+
+We are going to set lamda as 0.2 and n as 40
+Repeating the experiment 1000 times we are going to explore the effect of the CLT on the Exponential distribution, and how it tends to a Normal distribution.
+
+### Parameters and design simulation
+```{r}
+set.seed(123) #for reproducibility
+ #TODO set simulation pareters
+lambda <- 0.2  #rate
+n <- 40 #sample size
+nsim <- 1000 #number of simulations
+
+#theoretical mean and variance
+theor_mean <- 1/lambda
+theor_var <- (1/lambda)^2 / n
+theor_sd <- sqrt(theor_var)
+
+theor_mean; theor_var; theor_sd
+```
+
+### Simulation 
+
+Build vector of means using replicate function.
+This function will repeat the expression mean(rexp(n, rate = lambda)) nsim times and store the results in a vector.
+```{r}
+#TODO Build vector means with lennght nsim
+means <- replicate(nsim, mean(rexp(n, rate = lambda)))
+head(means)
+```
+### Theoretical vs empirical mean and variance
+
+```{r}
+#TODO empirical mean and variance and sd
+sample_mean <- mean(means)
+sample_var <- var(means)
+sample_sd <- sd(means)
+
+df_confronto <- data.frame(theoretical = c(theor_mean, theor_var, theor_sd),
+                          empirical = c(sample_mean, sample_var, sample_sd),
+                          row.names = c("mean", "variance", "sd"))
+knitr::kable(df_confronto, digits = 3, caption = "Theoretical vs Sample")
+```
+
+### Histogram of the means
+```{r message=FALSE, warning=FALSE, error=FALSE}
+#histogram of the means prob = TRUE
+hist(means, prob = TRUE, main = "Sample mean vs Theoretical Mean", xlab = "Means") 
+lines(density(means), col = "blue", lwd = 2)
+curve(dnorm(x, mean = theor_mean, sd = theor_sd), col = "red", lwd = 2, add = TRUE)
+#adding vertical line for the 2 means
+abline(v = theor_mean, col = "red", lwd = 1)
+abline(v = sample_mean, col = "blue", lwd = 1)
+#report nnumbers on the plot
+text(x = theor_mean + 0.35, y = 0.15, labels = paste(round(theor_mean, 2)), col = "red")
+text(x = sample_mean - 0.30, y = 0.15, labels = paste(round(sample_mean, 2)), col = "blue")
+```
+### QQ-plot
+```{r}
+#QQ-plot
+qqnorm(means, main = "QQ-plot of the sample means")
+```
+### Sample variance vs theoretical variance
+```{r}
+plot(density(means), main = "Sample Variance vs Theoretical Variance", xlab = "Means")
+curve(dnorm(x, mean = theor_mean, sd = theor_sd), col = "red", lwd = 2, add = TRUE)
+curve(dnorm(x, mean = sample_mean, sd = sqrt(sample_var)), col = "blue", lwd = 2, add = TRUE)
+```

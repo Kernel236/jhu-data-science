@@ -1,0 +1,189 @@
+---
+title: "noaa-storm-impact-analysis"
+author: "Kernel236"
+date: "2025-05-24"
+output:
+  html_document:
+    code_folding: show
+    toc: true
+    toc_float: true
+    fig_caption: true
+---
+
+
+# Synopsis
+
+This report explores the NOAA Storm Database to identify which types of severe weather events in the United States are most harmful to population health and which have the greatest economic impact. The dataset includes weather event records from 1950 to 2011, covering a variety of natural hazards such as tornadoes, floods, hurricanes, and heatwaves.
+
+The analysis begins by loading and processing the raw data, focusing on the event type (`EVTYPE`), and the associated figures for fatalities, injuries, property damage, and crop damage. Data cleaning was performed to standardize event types and to aggregate outcomes by event category.
+
+To evaluate the impact on population health, events were ranked based on the combined number of injuries and fatalities. To assess economic consequences, property and crop damage costs were summed and compared across event types.
+
+The results highlight the most severe weather events in terms of health and economic impact, providing insights into which types of events pose the greatest risks. The findings indicate that tornadoes, hurricanes, and floods are among the most harmful events, both in terms of human casualties and economic costs. Heatwaves also emerge as a significant health risk due to their high fatality rate.
+
+## Data Processing and Cleaning
+```{r include=FALSE, warning=FALSE, message=FALSE}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+
+```{r include=TRUE, cache=TRUE, warning=FALSE, message=FALSE}
+# Import database with relative path 
+storm_data <- read.csv(here::here("data/repdata_data_StormData.csv"), stringsAsFactors = FALSE)
+
+# Convert BGN_DATE to Date type
+storm_data$BGN_DATE <- as.Date(storm_data$BGN_DATE, format = "%m/%d/%Y %H:%M:%S")
+
+# Select relevant columns and rename for clarity
+storm_data <- storm_data %>%
+  select(BGN_DATE, EVTYPE, FATALITIES, INJURIES, PROPDMG, PROPDMGEXP, CROPDMG, CROPDMGEXP) %>%
+  rename(Date = BGN_DATE, EventType = EVTYPE, Fatalities = FATALITIES, Injuries = INJURIES,
+         PropertyDamage = PROPDMG, PropertyDamageExp = PROPDMGEXP,
+         CropDamage = CROPDMG, CropDamageExp = CROPDMGEXP)
+
+# Data Cleaning and Transformation
+#Convert damage exponent to numeric values
+storm_data <- storm_data %>%
+  mutate(
+    PropertyDamageExp = toupper(PropertyDamageExp),# convert to uppercase for consistency
+    CropDamageExp = toupper(CropDamageExp) # convert to uppercase for consistency
+  )
+
+# Define a function to convert damage exponent to numeric values
+storm_data <- storm_data %>%
+  mutate(
+    PropertyDamageExp = recode(PropertyDamageExp,
+      "K" = 1e3,
+      "M" = 1e6,
+      "B" = 1e9,
+      " "  = 1,
+      "-" = 0
+    ),
+    CropDamageExp = recode(CropDamageExp,
+      "K" = 1e3,
+      "M" = 1e6,
+      "B" = 1e9,
+      " "  = 1,
+      "-" = 0
+    )
+  ) %>%
+  mutate(
+    TotalPropertyDamage = PropertyDamage * PropertyDamageExp,
+    TotalCropDamage = CropDamage * CropDamageExp
+  )
+```
+
+In this section, I load the NOAA Storm Database, convert date formats, and select relevant columns. I also clean the data by standardizing event types and converting damage exponents to numeric values. The total property and crop damage are calculated by multiplying the base damage amounts by their respective exponents.
+
+```{r include=TRUE, warning=FALSE}
+
+# Aggregate data by event type
+storm_aggregated <- storm_data %>%
+  group_by(EventType) %>%
+  summarise(
+    TotalFatalities = sum(Fatalities, na.rm = TRUE),
+    TotalInjuries = sum(Injuries, na.rm = TRUE),
+    TotalPropertyDamage = sum(TotalPropertyDamage, na.rm = TRUE),
+    TotalCropDamage = sum(TotalCropDamage, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+# Calculate total health and economic impacts
+storm_aggregated <- storm_aggregated %>%
+  mutate(
+    TotalHealthImpact = TotalFatalities + TotalInjuries, # sum of fatalities and injuries direct and indirect 
+    TotalEconomicImpact = TotalPropertyDamage + TotalCropDamage # sum of property and crop damage
+  ) %>%
+  arrange(desc(TotalHealthImpact), desc(TotalEconomicImpact))
+
+
+
+# Save the processed data for later use
+write.csv(storm_aggregated, here::here("data/storm_aggregated.csv"), row.names = FALSE)
+
+```
+
+## Results
+
+### Top 10 Severe Weather Events by Health
+
+This analysis focuses on the health impact of severe weather events, specifically looking at fatalities and injuries. The goal is to identify which types of events have the highest combined health impact.
+
+```{r message=FALSE, warning=FALSE}
+# Load the processed data
+storm_aggregated <- read.csv(here::here("data/storm_aggregated.csv"))
+
+# Top 10 events by health impact
+top_health_events <- storm_aggregated %>%
+  arrange(desc(TotalHealthImpact)) %>%
+  head(10)
+
+# Plotting the top 10 events by health impact
+ggplot(top_health_events, aes(x = reorder(EventType, -TotalHealthImpact), y = TotalHealthImpact)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top 10 Severe Weather Events by Health Impact",
+       x = "Event Type",
+       y = "Total Health Impact (Fatalities + Injuries)") +
+  theme_minimal()
+
+
+# Save the plots
+ggsave(here::here("figures/top_health_events.png"), width = 10, height = 6)
+```
+
+### Top 10 Severe Weather Events by Economic Impact
+
+This analysis focuses on the economic impact of severe weather events, specifically looking at property and crop damage costs. The goal is to identify which types of events have the highest economic costs associated with them.
+
+```{r message=FALSE, warning=FALSE}
+
+# Top 10 events by economic impact
+top_economic_events <- storm_aggregated %>%
+  arrange(desc(TotalEconomicImpact)) %>%
+  head(10)
+
+# Plotting the top 10 events by economic impact
+ggplot(top_economic_events, aes(x = reorder(EventType, -TotalEconomicImpact), y = TotalEconomicImpact)) +
+  geom_bar(stat = "identity", fill = "darkgreen") +
+  coord_flip() +
+  labs(title = "Top 10 Severe Weather Events by Economic Impact",
+       x = "Event Type",
+       y = "Total Economic Impact (Property + Crop Damage)") +
+  theme_minimal()
+
+#save the plot
+ggsave(here::here("figures/top_economic_events.png"), width = 10, height = 6)
+```
+
+### Summary of Findings
+
+The analysis reveals that certain severe weather events have significantly higher impacts on both health and economy. Tornadoes, hurricanes, and floods consistently rank among the most harmful events in terms of fatalities, injuries, and economic costs.
+
+The top health impacts are dominated by events like tornadoes and heatwaves, which result in high fatalities and injuries. Economically, hurricanes and floods lead to substantial property and crop damage, indicating the need for robust disaster preparedness and response strategies.
+
+```{r message=FALSE, warning=FALSE}
+# aggregate the 2 plot in one 
+
+library(gridExtra)
+grid.arrange(
+  ggplot(top_health_events, aes(x = reorder(EventType, -TotalHealthImpact), y = TotalHealthImpact)) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    coord_flip() +
+    labs(title = "Top 10 Severe Weather Events by Health Impact",
+         x = "Event Type",
+         y = "Total Health Impact (Fatalities + Injuries)") +
+    theme_minimal(),
+  
+  ggplot(top_economic_events, aes(x = reorder(EventType, -TotalEconomicImpact), y = TotalEconomicImpact)) +
+    geom_bar(stat = "identity", fill = "darkgreen") +
+    coord_flip() +
+    labs(title = "Top 10 Severe Weather Events by Economic Impact",
+         x = "Event Type",
+         y = "Total Economic Impact (Property + Crop Damage)") +
+    theme_minimal(),
+  ncol = 1
+)
+```
