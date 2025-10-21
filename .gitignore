@@ -86,6 +86,11 @@ Desktop.ini
 # *.rds
 # *.RData
 
+# Data directories with large databases
+data/
+*/data/
+**/data/
+
 # Compiled files
 *.o
 *.so
