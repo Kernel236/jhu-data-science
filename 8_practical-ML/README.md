@@ -1,9 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
 # 🤖 Practical Machine Learning
 
 [![Course](https://img.shields.io/badge/Course-8%2F10-blue.svg)](https://github.com/your-username/jhu-data-science)
