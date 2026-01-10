@@ -1,6 +1,6 @@
 # 📊 Johns Hopkins Data Science Specialization
 
-[![R](https://img.shields.io/badge/R-4.0+-blue.svg)](https://www.r-project.org/) [![Coursera](https://img.shields.io/badge/Coursera-Johns%20Hopkins-0066CC.svg)](https://www.coursera.org/specializations/jhu-data-science) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Completion](https://img.shields.io/badge/Progress-9%2F10%20Courses-brightgreen.svg)](#courses-overview)
+[![R](https://img.shields.io/badge/R-4.0+-blue.svg)](https://www.r-project.org/) [![Coursera](https://img.shields.io/badge/Coursera-Johns%20Hopkins-0066CC.svg)](https://www.coursera.org/specializations/jhu-data-science) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Completion](https://img.shields.io/badge/Progress-10%2F10%20Courses-brightgreen.svg)](#courses-overview)
 
 > **Complete coursework and projects from the Johns Hopkins Data Science Specialization on Coursera**\
 > *A comprehensive journey through data science fundamentals, statistical analysis, and machine learning with R*
