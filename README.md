@@ -1,15 +1,15 @@
-# 📊 Johns Hopkins Data Science Specialization
+# Johns Hopkins Data Science Specialization
 
 [![R](https://img.shields.io/badge/R-4.0+-blue.svg)](https://www.r-project.org/) [![Coursera](https://img.shields.io/badge/Coursera-Johns%20Hopkins-0066CC.svg)](https://www.coursera.org/specializations/jhu-data-science) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Completion](https://img.shields.io/badge/Progress-10%2F10%20Courses-brightgreen.svg)](#courses-overview)
 
 > **Complete coursework and projects from the Johns Hopkins Data Science Specialization on Coursera**\
 > *A comprehensive journey through data science fundamentals, statistical analysis, and machine learning with R*
 
-## 🎯 About This Repository
+##  About This Repository
 
 This repository contains all assignments, projects, and code from the **Johns Hopkins Data Science Specialization** - a 10-course program covering the entire data science pipeline from data acquisition to reproducible research and product development.
 
-### 📚 Specialization Overview
+###  Specialization Overview
 
 The Johns Hopkins Data Science Specialization is taught by world-renowned faculty from the Bloomberg School of Public Health. This intensive program covers:
 
@@ -20,7 +20,7 @@ The Johns Hopkins Data Science Specialization is taught by world-renowned facult
 -   **Reproducible research practices**
 -   **Interactive data products**
 
-## 🎓 Courses Overview {#courses-overview}
+##  Courses Overview {#courses-overview}
 
 | Course | Status | Key Technologies | Projects |
 |----|----|----|----|
@@ -33,7 +33,7 @@ The Johns Hopkins Data Science Specialization is taught by world-renowned facult
 | [**8. Practical Machine Learning**](#8-practical-machine-learning) | ✅ Complete | caret, Random Forest | Activity Quality Prediction |
 | [**9. Developing Data Products**](#9-developing-data-products) | ✅ Complete | Shiny, Leaflet, Plotly | Interactive Web Applications |
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```         
 jhu-data-science/
@@ -62,38 +62,13 @@ jhu-data-science/
     └── shinyapp/                      # Full-stack web application
 ```
 
-## 🛠️ Technologies & Tools
+##  Technologies & Tools
 
 ### Programming Languages
 
 -   **R (4.0+)**: Primary language for all analysis
 -   **SQL**: Database querying and data extraction
 -   **HTML/CSS/JavaScript**: Web applications
-
-### R Packages & Libraries
-
-``` r
-# Core Data Science Stack
-library(tidyverse)    # Data manipulation and visualization
-library(dplyr)        # Data wrangling
-library(ggplot2)      # Advanced plotting
-library(tidyr)        # Data reshaping
-
-# Statistical Analysis
-library(caret)        # Machine learning framework
-library(randomForest) # Ensemble methods
-library(e1071)        # Support vector machines
-
-# Reproducible Research
-library(knitr)        # Dynamic report generation
-library(rmarkdown)    # Document creation
-
-# Interactive Applications
-library(shiny)        # Web applications
-library(leaflet)      # Interactive maps
-library(plotly)       # Interactive plots
-library(DT)          # Interactive tables
-```
 
 ### Development Environment
 
@@ -102,7 +77,7 @@ library(DT)          # Interactive tables
 -   **R Markdown**: Literate programming
 -   **Shiny Server**: Web application deployment
 
-## 📊 Data Sources
+##  Data Sources
 
 This specialization utilizes diverse, real-world datasets:
 
@@ -112,13 +87,11 @@ This specialization utilizes diverse, real-world datasets:
 -   **Automotive**: Motor Trend magazine dataset
 -   **Entertainment**: Movie ratings and box office data
 
-## 🤝 Contributing & Usage
-
 ### Academic Use
 
 This repository serves as: - **Portfolio demonstration** of data science capabilities - **Reference material** for similar coursework - **Educational resource** for R programming and data analysis
 
-## 📚 Resources & References
+##  Resources & References
 
 ### Official Course Materials
 
@@ -126,17 +99,7 @@ This repository serves as: - **Portfolio demonstration** of data science capabil
 -   [Course GitHub Repositories](https://github.com/DataScienceSpecialization)
 -   [Statistical Inference Book](https://leanpub.com/LittleInferenceBook)
 
-### Additional Learning
-
--   [R for Data Science](https://r4ds.had.co.nz/) - Hadley Wickham
--   [Advanced R](https://adv-r.hadley.nz/) - Hadley Wickham
--   [Elements of Statistical Learning](https://web.stanford.edu/~hastie/ElemStatLearn/) - Hastie, Tibshirani, Friedman
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 -   **Johns Hopkins Bloomberg School of Public Health** for world-class education
 -   **Course Instructors**: Jeff Leek, Roger Peng, Brian Caffo
